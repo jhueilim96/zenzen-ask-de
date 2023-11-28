@@ -1,0 +1,61 @@
+query  ($page: Int, $perPage: Int, $asHtml: Boolean){ 
+    Page (page: $page, perPage: $perPage) {
+        pageInfo {
+            total
+            currentPage
+            lastPage
+            hasNextPage
+            perPage
+        }
+        media (type: ANIME, sort:[TRENDING]) {
+            id
+            title {
+                romaji
+                english
+                native
+            }
+            type
+            format
+            description (asHtml: $asHtml)
+            startDate {
+                year
+                month
+                day
+            }
+            endDate {
+                year
+                month
+                day
+            }
+            season
+            seasonYear
+            seasonInt
+            episodes
+            duration
+            chapters
+            volumes
+            countryOfOrigin
+            source (version: 2)
+            genres
+            synonyms
+            averageScore
+            meanScore
+            popularity
+            trending
+            favourites
+            tags {
+                id
+                name
+            }
+            isAdult
+            externalLinks {
+                id
+                url
+                site
+                type
+                siteId
+                language
+            }
+        }
+    }
+}
