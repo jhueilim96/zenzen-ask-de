@@ -108,6 +108,6 @@ ENV/
 analysis
 # Local storage
 raw
-seed
 silver
+seed
 gold
