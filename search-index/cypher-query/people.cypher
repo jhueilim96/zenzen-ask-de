@@ -1,7 +1,10 @@
-MATCH (n:Studio)
+MATCH (n:People)
 RETURN
-'studio/' + toString(n.id) AS id
+'People/' + toString(n.id) AS id
 , labels(n) AS type
-, n.name AS name  
+, coalesce(n.name_full, n.name_first + ' ' + n.name_last )AS name
+, n.description AS description
+, n.siteUrl AS url
+, n.image_medium AS image_url
 SKIP $skip_count
 LIMIT $BATCH_SIZE
