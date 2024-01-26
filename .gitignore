@@ -88,6 +88,9 @@ celerybeat-schedule
 venv/
 ENV/
 
+# mac
+.DS_Store
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -106,6 +109,7 @@ ENV/
 .idea/
 
 analysis
+# Local storage
 raw
 silver
 seed
