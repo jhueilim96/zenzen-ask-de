@@ -114,3 +114,6 @@ raw
 silver
 seed
 gold
+*.duckdb
+*.duckdb.wal
+tmp*/
