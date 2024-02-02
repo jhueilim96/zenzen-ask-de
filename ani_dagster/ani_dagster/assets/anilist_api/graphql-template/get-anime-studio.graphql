@@ -1,0 +1,17 @@
+query ($media_id: Int) {
+  Media(type: ANIME, id: $media_id) {
+    id
+    studios {
+      edges {
+        id
+        isMain
+        node {
+          # Array of Studio
+          id
+          name
+          isAnimationStudio
+        }
+      }
+    }
+  }
+}

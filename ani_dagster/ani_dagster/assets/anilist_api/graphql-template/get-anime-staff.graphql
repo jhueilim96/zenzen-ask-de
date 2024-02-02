@@ -1,0 +1,53 @@
+query ($media_id: Int, $page: Int, $perPage: Int) {
+  Media(type: ANIME, id: $media_id) {
+    id
+    staff( page: $page, perPage: $perPage) {
+      edges {
+        # Array of character edges
+        id
+        role
+        node {
+          # Voice actors or production staff
+          id
+          name {
+            first
+            middle
+            last
+            full
+            native
+            alternative
+          }
+          languageV2
+          image {
+            medium
+          }
+          description
+          primaryOccupations
+          gender
+          dateOfBirth {
+            year
+            month
+            day
+          }
+          dateOfDeath {
+            year
+            month
+            day
+          }
+          age
+          yearsActive
+          homeTown
+          bloodType
+          siteUrl
+        }
+      }
+      pageInfo {
+        total
+        currentPage
+        lastPage
+        hasNextPage
+        perPage
+      }
+    }
+  }
+}
