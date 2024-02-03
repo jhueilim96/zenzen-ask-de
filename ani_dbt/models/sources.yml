@@ -1,0 +1,21 @@
+version: 2
+
+sources:
+  - name: main
+    tables:
+      - name: anime_bronze
+        meta:
+          dagster:
+            asset_key: ["anime_bronze"]
+      - name: character_bronze
+        meta:
+          dagster:
+            asset_key: ["character_bronze"]
+      - name: staff_bronze
+        meta:
+          dagster:
+            asset_key: ["staff_bronze"]
+      - name: studio_bronze
+        meta:
+          dagster:
+            asset_key: ["studio_bronze"]

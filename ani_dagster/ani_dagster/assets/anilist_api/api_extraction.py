@@ -136,7 +136,6 @@ def make_anime_seed(duck:DuckDBResource)->MaterializeResult:
         }
     )
 
-
 @asset(compute_kind='python', io_manager_key='q_json_fs', deps=[make_anime_seed])
 def get_anime_character(
     context: AssetExecutionContext,

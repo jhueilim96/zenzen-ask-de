@@ -1,17 +1,25 @@
+from typing import Any
 from dagster import (
     ConfigurableIOManager, InputContext, OutputContext,
     UPathIOManager,
     build_input_context,
     build_output_context,
-    FilesystemIOManager
+    FilesystemIOManager,
+    ConfigurableResource
 )
 
 
 from pathlib import Path
-from upath import UPath
+from dagster._core.execution.context.output import OutputContext
 import json
 from queue import Queue
+import duckdb
 
+class DuckdbJsonIOManager(ConfigurableResource):
+    storage_dir:str
+
+    def load_json_from_folder(self, conn:duckdb.DuckDBPyConnection) -> None:
+        return None
 
 
 class QueueJsonFileSystemIOManager(ConfigurableIOManager):
@@ -32,9 +40,5 @@ class QueueJsonFileSystemIOManager(ConfigurableIOManager):
             with open(file_path, 'w') as fp:
                 json.dump(data, fp)
 
-
     def load_input(self, context: InputContext, filename:str):
-        file_path = Path(self.storage_dir) / (filename + self.extension)
-        with open(file_path, 'r') as fp:
-            data = json.load(fp)
-        return data
+        pass

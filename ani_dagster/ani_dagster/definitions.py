@@ -7,7 +7,8 @@ from dagster_dbt import DbtCliResource
 from dagster_duckdb import DuckDBResource
 
 from .assets import (
-    anilist_asset,
+    anilist_api_asset,
+    anilist_bronze_asset,
     ani_dbt_dbt_assets
 )
 
@@ -20,7 +21,7 @@ storage_path = Path().cwd().parent / 'raw/anilist/'
 duckdb_path = Path().cwd().parent / 'ani_dbt/zenzen.duckdb'
 
 defs = Definitions(
-    assets=[ani_dbt_dbt_assets, *anilist_asset],
+    assets=[ani_dbt_dbt_assets, *anilist_api_asset, *anilist_bronze_asset],
     schedules=schedules,
     resources={
         "dbt": DbtCliResource(project_dir=os.fspath(dbt_project_dir)),

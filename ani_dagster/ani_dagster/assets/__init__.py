@@ -7,11 +7,16 @@ from dagster import (
 from dagster_dbt import DbtCliResource, dbt_assets
 from ..constants import dbt_manifest_path
 
-from . import anilist_api
+from . import anilist_api, anilist_lt
 
-anilist_asset = load_assets_from_package_module(
+anilist_api_asset = load_assets_from_package_module(
     package_module=anilist_api,
-    group_name='Anilist'
+    group_name='Anilist_E',
+)
+
+anilist_bronze_asset = load_assets_from_package_module(
+    package_module=anilist_lt,
+    group_name='Anilist_LT',
 )
 
 
