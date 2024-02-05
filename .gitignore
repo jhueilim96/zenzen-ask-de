@@ -116,4 +116,7 @@ seed
 gold
 *.duckdb
 *.duckdb.wal
+
+# Temporary Files
 tmp*/
+tmp*.ipynb
