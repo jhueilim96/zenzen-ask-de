@@ -1,0 +1,20 @@
+python_logs:
+  dagster_handler_config:
+    handlers:
+      myHandler:
+        class: logging.FileHandler
+        level: DEBUG
+        filename: "my_dagster_logs.log"
+        mode: "a"
+        formatter: timeFormatter
+    formatters:
+      timeFormatter:
+        format: "%(asctime)s :: %(message)s"
+storage:
+  sqlite:
+    base_dir: "./.dagster"
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: "./.dagster"
