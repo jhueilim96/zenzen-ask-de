@@ -13,7 +13,7 @@ from pathlib import Path
 from dagster._core.execution.context.output import OutputContext
 import json
 from queue import Queue
-import duckdb
+import typesense
 from neo4j import GraphDatabase
 
 from .assets.neo4j_utils import Node, Relation
@@ -82,6 +82,24 @@ class Neo4jGraphResource(ConfigurableResource):
         )
         return res
 
+
+class TypesenseSearchIndexResource(ConfigurableResource):
+    host:str
+    port:str
+    protocol:str
+    api_key:str
+
+    def get_client(self)->typesense.Client:
+        client = typesense.Client({
+            'nodes': [{
+                'host': self.host,
+                'port': self.port,
+                'protocol': self.protocol
+            }],
+            'api_key': self.api_key,
+            'connection_timeout_seconds': 2
+        })
+        return client
 
 class QueueJsonFileSystemIOManager(ConfigurableIOManager):
 

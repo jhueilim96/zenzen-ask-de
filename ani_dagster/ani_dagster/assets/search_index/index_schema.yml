@@ -1,0 +1,130 @@
+schema:
+  - name: webpage
+    default_sorting_field: ""
+    token_separators: []
+    fields:
+      - facet: false
+        index: true
+        infix: false
+        name: name
+        optional: false
+        sort: false
+        type: string
+      - facet: true
+        index: true
+        infix: false
+        name: type
+        optional: false
+        sort: false
+        type: string[]
+      - facet: false
+        index: true
+        infix: false
+        locale: ""
+        name: description
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        infix: false
+        name: url
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        infix: false
+        name: image_url
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        infix: false
+        name: detail_url
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        infix: false
+        name: detail_text
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        infix: false
+        locale: ""
+        name: synonyms
+        optional: true
+        sort: false
+        type: string[]
+      - facet: false
+        index: true
+        infix: false
+        name: popularity
+        optional: true
+        sort: true
+        type: int32
+      - facet: false
+        index: true
+        infix: false
+        name: meanScore
+        optional: true
+        sort: true
+        type: int32
+
+  - name: entity2
+    default_sorting_field: ""
+    token_separators: []
+    fields:
+      - facet: false
+        index: false
+        name: id
+        optional: false
+        sort: false
+        type: string[]
+      - facet: false
+        index: true
+        name: title
+        optional: false
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        name: alternative
+        optional: true
+        sort: false
+        type: string[]
+      - facet: true
+        index: true
+        name: type
+        optional: false
+        sort: false
+        type: string
+      - facet: false
+        index: true
+        name: description
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: false
+        name: image_url
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: false
+        name: resource_url
+        optional: true
+        sort: false
+        type: string
+      - facet: false
+        index: false
+        name: long_description
+        optional: true
+        sort: false
+        type: string

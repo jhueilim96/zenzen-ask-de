@@ -10,3 +10,11 @@ python_logs:
     formatters:
       timeFormatter:
         format: "%(asctime)s :: %(message)s"
+storage:
+  sqlite:
+    base_dir: "./.dagster"
+local_artifact_storage:
+  module: dagster.core.storage.root
+  class: LocalArtifactStorage
+  config:
+    base_dir: "./.dagster"

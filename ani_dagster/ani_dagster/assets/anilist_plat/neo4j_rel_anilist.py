@@ -236,9 +236,9 @@ def voice_act_rel(
 @asset(
     deps=[nd.character_node],
     compute_kind='neo4j',
-    group_name='neo4j_enrichment'
+    group_name='neo4j'
     )
-def voice_act_rel(
+def has_link_character(
     context: AssetExecutionContext,
     neo4jgraph:Neo4jGraphResource
 ) -> None:

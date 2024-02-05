@@ -120,3 +120,5 @@ gold
 # Temporary Files
 tmp*/
 tmp*.ipynb
+.dagster
+logs
