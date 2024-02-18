@@ -1,22 +1,16 @@
-from typing import Any
 from dagster import (
     ConfigurableIOManager, InputContext, OutputContext,
-    UPathIOManager,
-    build_input_context,
-    build_output_context,
-    FilesystemIOManager,
     ConfigurableResource
 )
 
 
 from pathlib import Path
-from dagster._core.execution.context.output import OutputContext
 import json
 from queue import Queue
 import typesense
 from neo4j import GraphDatabase
 
-from .assets.neo4j_utils import Node, Relation
+from ..assets.neo4j_utils import Node, Relation
 
 class Neo4jGraphResource(ConfigurableResource):
     uri:str

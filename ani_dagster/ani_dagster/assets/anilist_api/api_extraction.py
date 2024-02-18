@@ -3,7 +3,7 @@ from dagster import (
     get_dagster_logger,
     AssetExecutionContext,
     MaterializeResult,
-    MetadataValue
+    MetadataValue,
 )
 
 from pathlib import Path
@@ -13,22 +13,26 @@ import queue
 
 from dagster_duckdb import DuckDBResource
 
-URL = 'https://graphql.anilist.co'
-TEMPLATE_PATH = Path().cwd() / 'ani_dagster/assets/anilist_api/graphql-template'
+URL = "https://graphql.anilist.co"
+TEMPLATE_PATH = Path().cwd() / "ani_dagster/assets/anilist_api/graphql-template"
 
-def get_graphql_template(template_path)->str:
-    with open(str(template_path), 'r') as fp:
+
+def get_graphql_template(template_path) -> str:
+    with open(str(template_path), "r") as fp:
         return fp.read()
 
-def make_api_call(url:str, query:str, variables:dict, retry:int=2):
+
+def make_api_call(url: str, query: str, variables: dict, retry: int = 2):
     while retry > 0:
-        resp = httpx.post(url, json={'query': query, 'variables': variables})
+        resp = httpx.post(url, json={"query": query, "variables": variables})
         if resp.status_code == 200:
-            result =  resp.json()
-            print(f'Remaing API call per min: {resp.headers.get("x-ratelimit-remaining")}')
+            result = resp.json()
+            print(
+                f'Remaing API call per min: {resp.headers.get("x-ratelimit-remaining")}'
+            )
             return result
         elif resp.status_code == 429:
-            print(f'Too many request. Retry for 30 seconds')
+            print(f"Too many request. Retry for 30 seconds")
             time.sleep(30)
             retry = retry - 1
         else:
@@ -38,14 +42,12 @@ def make_api_call(url:str, query:str, variables:dict, retry:int=2):
     return False
 
 
-
-@asset(compute_kind='python', io_manager_key='q_json_fs')
+@asset(compute_kind="python", io_manager_key="q_json_fs")
 def get_anime(
     context: AssetExecutionContext,
-) -> queue.Queue :
-
+) -> queue.Queue:
     log = get_dagster_logger()
-    graphql_filename = 'get-anime.graphql'
+    graphql_filename = "get-anime.graphql"
     template = get_graphql_template(TEMPLATE_PATH / graphql_filename)
 
     MAX_PER_PAGE = 5
@@ -53,30 +55,27 @@ def get_anime(
     total_api_call_count = int(TOP / MAX_PER_PAGE)
     q = queue.Queue()
 
-    for page_num in range(1, total_api_call_count+1):
-        variables = {
-            'page': page_num,
-            'perPage': MAX_PER_PAGE
-        }
+    for page_num in range(1, total_api_call_count + 1):
+        variables = {"page": page_num, "perPage": MAX_PER_PAGE}
         result = make_api_call(URL, template, variables)
-        data = result.get('data')
-        current_page = result.get('data').get('Page').get('pageInfo').get('currentPage')
+        data = result.get("data")
+        current_page = result.get("data").get("Page").get("pageInfo").get("currentPage")
         q.put((data, f"anime/page-{current_page}"))
         log.info(f"Compeleted request page {current_page} at {URL}")
 
-    context.add_output_metadata({"Size": q.qsize() })
+    context.add_output_metadata({"Size": q.qsize()})
     return q
 
-@asset(compute_kind='python', deps=[get_anime])
-def make_anime_seed(duck:DuckDBResource)->MaterializeResult:
 
-    storage_path = Path().cwd().parent / 'raw/anilist/anime/*.json'
+@asset(compute_kind="python", deps=[get_anime])
+def make_anime_seed(duck: DuckDBResource) -> MaterializeResult:
+    storage_path = Path().cwd().parent / "raw/anilist/anime/*.json"
 
     with duck.get_connection() as conn:
+        df_page = conn.read_json(str(storage_path), format="auto")
 
-        df_page = conn.read_json(str(storage_path), format='auto')
-
-        df_media = conn.sql("""
+        df_media = conn.sql(
+            """
             WITH df_page_media AS (
                 SELECT
                     UNNEST(
@@ -117,17 +116,20 @@ def make_anime_seed(duck:DuckDBResource)->MaterializeResult:
                 ,(d->'media'->'tags')::JSON[] "tags"
                 ,(d->'media'->'externalLinks')::JSON[] "external_links"
             FROM df_page_media d
-        """)
+        """
+        )
 
-        conn.sql("""
+        conn.sql(
+            """
         DROP TABLE IF EXISTS anime_seed;
         CREATE TABLE anime_seed AS
         SELECT DISTINCT media_id, title_english
         FROM df_media
-        """)
+        """
+        )
 
-        seed_count = conn.sql('select count(*) from anime_seed').fetchone()[0]
-        seed_preview = conn.sql('select * from anime_seed limit 3').df()
+        seed_count = conn.sql("select count(*) from anime_seed").fetchone()[0]
+        seed_preview = conn.sql("select * from anime_seed limit 3").df()
 
     return MaterializeResult(
         metadata={
@@ -136,18 +138,17 @@ def make_anime_seed(duck:DuckDBResource)->MaterializeResult:
         }
     )
 
-@asset(compute_kind='python', io_manager_key='q_json_fs', deps=[make_anime_seed])
-def get_anime_character(
-    context: AssetExecutionContext,
-    duck: DuckDBResource
-)->queue.Queue:
 
+@asset(compute_kind="python", io_manager_key="q_json_fs", deps=[make_anime_seed])
+def get_anime_character(
+    context: AssetExecutionContext, duck: DuckDBResource
+) -> queue.Queue:
     MAX_PER_PAGE = 25
     remaining_request = 90
     q = queue.Queue()
     log = get_dagster_logger()
 
-    graphql_filename = 'get-anime-character.graphql'
+    graphql_filename = "get-anime-character.graphql"
     template = get_graphql_template(TEMPLATE_PATH / graphql_filename)
 
     with duck.get_connection() as conn:
@@ -159,12 +160,7 @@ def get_anime_character(
         current_page = 1
 
         while has_next_page:
-
-            variables = {
-                'page': current_page,
-                'perPage': MAX_PER_PAGE,
-                'media_id': id
-            }
+            variables = {"page": current_page, "perPage": MAX_PER_PAGE, "media_id": id}
 
             if remaining_request < 10:
                 log.info("Pause to recover limit")
@@ -174,31 +170,38 @@ def get_anime_character(
             result = make_api_call(URL, template, variables)
             q.put((result, f"character/{id}-{current_page}"))
 
-            has_next_page = result.get('data').get('Media').get('characters').get('pageInfo').get('hasNextPage')
+            has_next_page = (
+                result.get("data")
+                .get("Media")
+                .get("characters")
+                .get("pageInfo")
+                .get("hasNextPage")
+            )
             if has_next_page:
                 current_page += 1
             else:
-                log.info(f'{id} has completed all pagination')
+                log.info(f"{id} has completed all pagination")
                 break
 
-    context.add_output_metadata(metadata={
-        "Character JSON Count": q.qsize(),
-    })
+    context.add_output_metadata(
+        metadata={
+            "Character JSON Count": q.qsize(),
+        }
+    )
 
     return q
 
-@asset(compute_kind='python', io_manager_key='q_json_fs', deps=[make_anime_seed])
-def get_anime_staff(
-    context: AssetExecutionContext,
-    duck: DuckDBResource
-)->queue.Queue:
 
+@asset(compute_kind="python", io_manager_key="q_json_fs", deps=[make_anime_seed])
+def get_anime_staff(
+    context: AssetExecutionContext, duck: DuckDBResource
+) -> queue.Queue:
     MAX_PER_PAGE = 25
     remaining_request = 90
     q = queue.Queue()
     log = get_dagster_logger()
 
-    graphql_filename = 'get-anime-staff.graphql'
+    graphql_filename = "get-anime-staff.graphql"
     template = get_graphql_template(TEMPLATE_PATH / graphql_filename)
 
     with duck.get_connection() as conn:
@@ -210,12 +213,7 @@ def get_anime_staff(
         current_page = 1
 
         while has_next_page:
-
-            variables = {
-                'page': current_page,
-                'perPage': MAX_PER_PAGE,
-                'media_id': id
-            }
+            variables = {"page": current_page, "perPage": MAX_PER_PAGE, "media_id": id}
 
             if remaining_request < 20:
                 log.info("Pause to recover limit")
@@ -225,35 +223,44 @@ def get_anime_staff(
             result = make_api_call(URL, template, variables)
 
             if not result:
-                context.add_output_metadata(metadata={
-                    "Staff JSON Count": q.qsize(),
-                })
+                context.add_output_metadata(
+                    metadata={
+                        "Staff JSON Count": q.qsize(),
+                    }
+                )
                 return q
 
             q.put((result, f"staff/{id}-{current_page}"))
-            has_next_page = result.get('data').get('Media').get('staff').get('pageInfo').get('hasNextPage')
+            has_next_page = (
+                result.get("data")
+                .get("Media")
+                .get("staff")
+                .get("pageInfo")
+                .get("hasNextPage")
+            )
             if has_next_page:
                 current_page += 1
 
-        log.info(f'{id} has completed all pagination')
+        log.info(f"{id} has completed all pagination")
 
-    context.add_output_metadata(metadata={
-        "Staff JSON Count": q.qsize(),
-    })
+    context.add_output_metadata(
+        metadata={
+            "Staff JSON Count": q.qsize(),
+        }
+    )
     return q
 
-@asset(compute_kind='python', io_manager_key='q_json_fs', deps=[make_anime_seed])
-def get_anime_studio(
-    context: AssetExecutionContext,
-    duck: DuckDBResource
-)->queue.Queue:
 
+@asset(compute_kind="python", io_manager_key="q_json_fs", deps=[make_anime_seed])
+def get_anime_studio(
+    context: AssetExecutionContext, duck: DuckDBResource
+) -> queue.Queue:
     MAX_API_PER_MIN = 30
     DURATION_PER_API_CALL = round(60 / MAX_API_PER_MIN, 1)
     q = queue.Queue()
     log = get_dagster_logger()
 
-    graphql_filename = 'get-anime-studio.graphql'
+    graphql_filename = "get-anime-studio.graphql"
     template = get_graphql_template(TEMPLATE_PATH / graphql_filename)
 
     with duck.get_connection() as conn:
@@ -262,10 +269,8 @@ def get_anime_studio(
     for row in rows:
         id = row[0]
         start_time = time.time()
-        variables = {
-            'media_id': id
-        }
-        resp = httpx.post(URL, json={'query': template, 'variables': variables})
+        variables = {"media_id": id}
+        resp = httpx.post(URL, json={"query": template, "variables": variables})
         if resp.status_code != 200:
             print(f"Request fails at {id}")
             raise resp.raise_for_status()
@@ -274,15 +279,17 @@ def get_anime_studio(
         log.info(f"Completed for staff {id}")
         q.put((result, f"studio/{id}"))
 
-        remaining_request = int(resp.headers.get('x-ratelimit-remaining'))
-        print(f'Remaining API call per min: {remaining_request}')
+        remaining_request = int(resp.headers.get("x-ratelimit-remaining"))
+        print(f"Remaining API call per min: {remaining_request}")
         duration_ops = time.time() - start_time
         duration_to_waiting = DURATION_PER_API_CALL - duration_ops
 
         if duration_to_waiting > 0:
             time.sleep(duration_to_waiting)
 
-    context.add_output_metadata(metadata={
-        "Studio JSON Count": q.qsize(),
-    })
+    context.add_output_metadata(
+        metadata={
+            "Studio JSON Count": q.qsize(),
+        }
+    )
     return q
