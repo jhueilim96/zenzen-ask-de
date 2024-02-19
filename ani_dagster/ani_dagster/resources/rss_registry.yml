@@ -1,0 +1,9 @@
+chruncyroll:
+  name: CrunchyRoll
+  url: https://cr-news-api-service.prd.crunchyrollsvc.com/v1/en-US/rss
+animenewsnetwork:
+  name: AnimeNewsNetwork
+  url: https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us
+otakukart:
+  name: Otakukart
+  url: https://otakukart.com/feed/

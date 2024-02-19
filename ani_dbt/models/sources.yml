@@ -19,3 +19,15 @@ sources:
         meta:
           dagster:
             asset_key: ["studio_bronze"]
+      - name: rss_chruncyroll_raw
+        meta:
+          dagster:
+            asset_key: ["load_chruncyroll"]
+      - name: rss_animenewsnetwork_raw
+        meta:
+          dagster:
+            asset_key: ["load_animenewsnetwork"]
+      - name: rss_otakukart_raw
+        meta:
+          dagster:
+            asset_key: ["load_otakukart"]
