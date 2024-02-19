@@ -13,7 +13,10 @@ from dagster_duckdb import DuckDBResource
 from ani_dagster.resources.rss import RssRegistry
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def rss_chruncyroll(
     context: AssetExecutionContext, rss_registry: RssRegistry
 ) -> feedparser.util.FeedParserDict:
@@ -31,7 +34,10 @@ def rss_chruncyroll(
     return post
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def load_chruncyroll(
     rss_chruncyroll: feedparser.util.FeedParserDict,
     duck: DuckDBResource,
@@ -40,20 +46,23 @@ def load_chruncyroll(
     site_name = rss_registry.retrive_sites("chruncyroll").get("name")
     with duck.get_connection() as conn:
         conn.sql(
-            """create table if not exists rss_bronze
+            """create table if not exists rss_chruncyroll_raw
             (content varchar, site varchar, retrieved_at timestamp, content_hash UBIGINT)
             """
         )
         json_d = json.dumps(rss_chruncyroll)
         conn.execute(
             """with prep as (select ? as content, ? as site, current_timestamp)
-            insert into rss_bronze from ( select * , hash(content) from prep)
+            insert into rss_chruncyroll_raw from ( select * , hash(content) from prep)
             """,
             parameters=[json_d, site_name],
         )
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def rss_animenewsnetwork(
     context: AssetExecutionContext, rss_registry: RssRegistry
 ) -> feedparser.util.FeedParserDict:
@@ -71,7 +80,10 @@ def rss_animenewsnetwork(
     return post
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def load_animenewsnetwork(
     rss_animenewsnetwork: feedparser.util.FeedParserDict,
     duck: DuckDBResource,
@@ -80,20 +92,23 @@ def load_animenewsnetwork(
     site_name = rss_registry.retrive_sites("animenewsnetwork").get("name")
     with duck.get_connection() as conn:
         conn.sql(
-            """create table if not exists rss_bronze
+            """create table if not exists rss_animenewsnetwork_raw
             (content varchar, site varchar, retrieved_at timestamp, content_hash UBIGINT)
             """
         )
         json_d = json.dumps(rss_animenewsnetwork)
         conn.execute(
             """with prep as (select ? as content, ? as site, current_timestamp)
-            insert into rss_bronze from ( select * , hash(content) from prep)
+            insert into rss_animenewsnetwork_raw from ( select * , hash(content) from prep)
             """,
             parameters=[json_d, site_name],
         )
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def rss_otakukart(
     context: AssetExecutionContext, rss_registry: RssRegistry
 ) -> feedparser.util.FeedParserDict:
@@ -111,7 +126,10 @@ def rss_otakukart(
     return post
 
 
-@asset(compute_kind="python")
+@asset(
+    compute_kind="python",
+    group_name="rss_extract_load",
+)
 def load_otakukart(
     rss_otakukart: feedparser.util.FeedParserDict,
     duck: DuckDBResource,
@@ -120,14 +138,14 @@ def load_otakukart(
     site_name = rss_registry.retrive_sites("otakukart").get("name")
     with duck.get_connection() as conn:
         conn.sql(
-            """create table if not exists rss_bronze
+            """create table if not exists rss_otakukart_raw
             (content varchar, site varchar, retrieved_at timestamp, content_hash UBIGINT)
             """
         )
         json_d = json.dumps(rss_otakukart)
         conn.execute(
             """with prep as (select ? as content, ? as site, current_timestamp)
-            insert into rss_bronze from ( select * , hash(content) from prep)
+            insert into rss_otakukart_raw from ( select * , hash(content) from prep)
             """,
             parameters=[json_d, site_name],
         )

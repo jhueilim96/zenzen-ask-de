@@ -6,6 +6,7 @@ from dagster import (
     AssetSelection,
     define_asset_job,
     FilesystemIOManager,
+    ScheduleDefinition,
 )
 from dagster_dbt import DbtCliResource
 from dagster_duckdb import DuckDBResource
@@ -19,7 +20,7 @@ from .assets import (
 )
 
 from .constants import dbt_project_dir
-from .schedules import schedules
+from .schedules import dbt_schedules
 from .resources.core import (
     QueueJsonFileSystemIOManager,
     Neo4jGraphResource,
@@ -54,6 +55,9 @@ neo4j_job = define_asset_job("Neo4j", selection=AssetSelection.groups("neo4j"))
 index_job = define_asset_job(
     "IndexJob", selection=AssetSelection.assets(*anilist_search_index)
 )
+rss_extract_load_job = define_asset_job(
+    "RssExtractLoad", selection=AssetSelection.groups("rss_extract_load")
+)
 
 all_jobs = [
     anilist_extract_job,
@@ -61,11 +65,21 @@ all_jobs = [
     datawarehouse_job,
     neo4j_job,
     index_job,
+    rss_extract_load_job,
+]
+
+rss_extract_load_schedule = ScheduleDefinition(
+    job=rss_extract_load_job, cron_schedule="0 * * * *"
+)
+
+all_schedules = [
+    *dbt_schedules,
+    rss_extract_load_schedule,
 ]
 
 defs = Definitions(
     assets=all_assets,
-    schedules=schedules,
+    schedules=all_schedules,
     jobs=all_jobs,
     resources={
         "dbt": DbtCliResource(project_dir=os.fspath(dbt_project_dir)),

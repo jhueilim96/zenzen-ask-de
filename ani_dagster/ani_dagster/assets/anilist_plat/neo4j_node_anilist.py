@@ -5,7 +5,9 @@ from dagster_duckdb import DuckDBResource
 from ..neo4j_utils import make_node_list_from_table
 from ...resources.core import Neo4jGraphResource
 import math
-from .dbt_anilist import ani_dbt_assets
+
+# from .dbt_anilist import ani_dbt_assets
+from ani_dagster.assets.anilist_plat.dbt_anilist import ani_dbt_assets
 
 
 @asset(

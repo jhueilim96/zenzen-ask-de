@@ -1,6 +1,5 @@
 import yaml
 from dagster import ConfigurableResource
-from pathlib import Path
 
 
 class RssRegistry(ConfigurableResource):
